@@ -1,0 +1,7 @@
+const BROADCAST = {
+  PLAYER_ONLY: "PLAYER_ONLY",
+  ALL: "ALL",
+  OTHERS_ONLY: "OTHERS_ONLY",
+}
+
+export default BROADCAST;
