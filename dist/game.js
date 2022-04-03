@@ -2927,14 +2927,17 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
     MOVE_UP: "MOVE_UP",
     MOVE_DOWN: "MOVE_DOWN",
     NEW_POS: "NEW_POS",
-    CLIENT_LEAVE: "CLIENT_LEAVE"
+    CLIENT_LEAVE: "CLIENT_LEAVE",
+    EAT_CHEESE: "EAT_CHEESE"
   };
 
   // code/client/ServerConnection.mjs
   var protocol = location.protocol === "https:" ? "wss" : "ws";
+  console.log("Creating the web socket");
   var ws2 = new WebSocket(`${protocol}://${location.host}/multiplayer`);
+  console.log("Web socket created");
   function onConnectionToServer(onOpen) {
-    ws2.onopen = onOpen;
+    ws2.addEventListener("open", onOpen);
   }
   __name(onConnectionToServer, "onConnectionToServer");
   function sendMessage(message) {
@@ -2942,6 +2945,10 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
     ws2.send(JSON.stringify(message));
   }
   __name(sendMessage, "sendMessage");
+  function isWebSocketOpen() {
+    return ws2.readyState === WebSocket.OPEN;
+  }
+  __name(isWebSocketOpen, "isWebSocketOpen");
   var serverMessageHandlers = {};
   function addServerMessageHandler(action, handler) {
     serverMessageHandlers[action] = handler;
@@ -3036,17 +3043,26 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
   __name(addCheese, "addCheese");
 
   // code/client/main.js
-  no();
+  no({
+    background: [0, 0, 255]
+  });
   loadSprite("mouse", "sprites/mouse.png");
   loadSprite("cheese", "sprites/cheese.png");
-  loadSprite("back", "sprites/background.png");
+  loadSprite("back", "sprites/background.jpg");
   scene("game", () => {
     layers([
       "bg",
       "obj",
       "ui"
     ], "obj");
-    onConnectionToServer((event) => sendMessage(new Message(PLAYER_ACTION.INIT, { name: "test" })));
+    onConnectionToServer((event) => {
+      console.log("Sending 'new player' message to the server");
+      sendMessage(new Message(PLAYER_ACTION.INIT, { name: "test" }));
+      console.log("new-player message sent!");
+    });
+    if (isWebSocketOpen()) {
+      sendMessage(new Message(PLAYER_ACTION.INIT, { name: "test" }));
+    }
     let id = null;
     window.onbeforeunload = function() {
     };
@@ -3058,7 +3074,8 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
     ]);
     add([
       sprite("back"),
-      layer("bg")
+      layer("bg"),
+      scale(2, 2)
     ]);
     addServerMessageHandler(SERVER_MESSAGE.NEW_CHEESE, function(data) {
       addCheese(data.id, data.currentX, data.currentY);
@@ -3104,6 +3121,7 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
         destroy(cheese);
         score.value += 1;
         score.text = "Score:" + score.value;
+        sendMessage(new Message(PLAYER_ACTION.EAT_CHEESE, {}));
       });
       addServerMessageHandler(SERVER_MESSAGE.MOVE_TO, function(data2) {
         const kaboomObject = getKaboomObjectForPlayer(data2.playerId);

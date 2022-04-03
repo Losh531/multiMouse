@@ -1,19 +1,23 @@
 
 import kaboom from "kaboom";
 import { PLAYER_ACTION, SERVER_MESSAGE, MOVE_SPEED } from "../actions.mjs";
-import { onConnectionToServer, sendMessage, addServerMessageHandler } from "./ServerConnection.mjs";
+import { onConnectionToServer, sendMessage, isWebSocketOpen, addServerMessageHandler } from "./ServerConnection.mjs";
 import Message from "../Message.mjs";
 import addPlayer from "./action-addPlayer.mjs";
 import addCheese from "./action-addCheese.mjs";
 import { getKaboomObjectForPlayer } from './Players.mjs';
 
 // initialize context
-kaboom();
+kaboom({
+  //width: 1000,
+  //height: 1000,
+  background: [0, 0, 255, ],
+});
 
 // load assets
 loadSprite("mouse", "sprites/mouse.png");
 loadSprite("cheese", "sprites/cheese.png");
-loadSprite("back", "sprites/background.png");
+loadSprite("back", "sprites/background.jpg");
 
 scene("game", () => {
 
@@ -24,7 +28,14 @@ scene("game", () => {
   ], "obj");  // the default layer
 
   // Notifying the server a new player has entered the game
-  onConnectionToServer( (event) => sendMessage(new Message(PLAYER_ACTION.INIT, { name: "test" })) );
+  onConnectionToServer( (event) => {
+    console.log("Sending 'new player' message to the server");
+    sendMessage(new Message(PLAYER_ACTION.INIT, { name: "test" })) 
+    console.log("new-player message sent!");
+  } );
+  if (isWebSocketOpen()) {
+    sendMessage(new Message(PLAYER_ACTION.INIT, { name: "test" }))
+  }
   
   let id = null
   // TODO Remove the player when they close their window
@@ -44,6 +55,7 @@ scene("game", () => {
   add([
     sprite("back"),
     layer("bg"),
+    scale(2, 2)
     //fixed()
   ])
   
@@ -94,12 +106,14 @@ scene("game", () => {
          sendMessage(new Message(PLAYER_ACTION.MOVE_UP, { playerId: myPlayer.id })) });
       onKeyDown("down", () => {
          sendMessage(new Message(PLAYER_ACTION.MOVE_DOWN, { playerId: myPlayer.id })) });
+
       onCollide("mouse" + myPlayerId, "cheese", (mouse, cheese) => {
-      destroy(cheese)
-      score.value += 1
-      score.text = "Score:" + score.value
-          
+        destroy(cheese)
+        score.value += 1
+        score.text = "Score:" + score.value
+        sendMessage(new Message(PLAYER_ACTION.EAT_CHEESE, {} ));
       });
+      
       addServerMessageHandler(SERVER_MESSAGE.MOVE_TO, function(data) {
         const kaboomObject = getKaboomObjectForPlayer(data.playerId);
         console.log("Moving the player to " + data.currentX + " " + data.currentY);

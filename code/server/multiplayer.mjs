@@ -4,6 +4,7 @@ import BROADCAST from "./broadcastOptions.mjs";
 import { registerPlayer } from './action-registerPlayer.mjs';
 import { movePlayerLeft, movePlayerRight, movePlayerUp, movePlayerDown } from './action-movePlayer.mjs';
 import { newPos } from './action-newPos.mjs';
+import { eatCheese } from './action-eatCheese.mjs';
 import ws from 'ws';
 
 // Registering all actions the server will handle
@@ -19,6 +20,8 @@ addPlayerActionHandler(PLAYER_ACTION.MOVE_DOWN,
   (data, broadcast) => movePlayerDown(data, broadcast));
 addPlayerActionHandler(PLAYER_ACTION.NEW_POS,
   (data, broadcast) => newPos(data, broadcast));
+addPlayerActionHandler(PLAYER_ACTION.EAT_CHEESE,
+  (data, broadcast) => eatCheese(data, broadcast));
 
 // TODO 
 

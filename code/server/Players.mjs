@@ -1,6 +1,10 @@
 
 export const players = [];
 
+const scale = 2;
+const backgroundImageWidth = 3841 * scale;
+const backgroundImageHeight = 2161 * scale;
+
 class Player {
   constructor(id, name, currentX, currentY) {
     this.id = id;
@@ -19,7 +23,7 @@ export function debugPlayerPositions() {
 // TODO Check whether this overlaps with another cheese or player
 export function addPlayer(name) {
   const newPlayerId = players.length;
-  players[newPlayerId] = new Player(newPlayerId, name, Math.floor(Math.random() * 800), Math.floor(Math.random() * 800));
+  players[newPlayerId] = new Player(newPlayerId, name, Math.floor(Math.random() * backgroundImageWidth), Math.floor(Math.random() * backgroundImageHeight));
   return players[newPlayerId];
 }
 

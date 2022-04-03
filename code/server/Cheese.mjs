@@ -1,6 +1,10 @@
 
 export const cheese = [];
 
+const scale = 2;
+const backgroundImageWidth = 3841 * scale;
+const backgroundImageHeight = 2161 * scale;
+
 class Cheese {
   constructor(id, currentX, currentY) {
     this.id = id;
@@ -19,8 +23,8 @@ export function debugCheesePositions() {
 export function addCheese() {
   const newCheeseId = cheese.length;
   cheese[newCheeseId] = new Cheese(newCheeseId,
-    Math.floor(Math.random() * 800),
-    Math.floor(Math.random() * 800));
+    Math.floor(Math.random() * backgroundImageWidth),
+    Math.floor(Math.random() * backgroundImageHeight));
   return cheese[newCheeseId];
 }
 

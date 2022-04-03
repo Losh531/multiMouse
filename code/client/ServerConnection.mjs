@@ -1,13 +1,20 @@
 const protocol = location.protocol === "https:" ? "wss" : "ws";
+console.log("Creating the web socket");
 const ws = new WebSocket(`${protocol}://${location.host}/multiplayer`);
+console.log("Web socket created");
 
 export function onConnectionToServer(onOpen) {
-  ws.onopen = onOpen;
+  //ws.onopen = onOpen;
+  ws.addEventListener('open', onOpen);
 }
 
 export function sendMessage(message) {
   console.log("Sending message to the server", message);
   ws.send(JSON.stringify(message));
+}
+
+export function isWebSocketOpen() {
+  return ws.readyState === WebSocket.OPEN;
 }
 
 const serverMessageHandlers = { };
